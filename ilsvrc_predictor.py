@@ -5,7 +5,7 @@ ILSVRC_calss_index = json.load(open('data/imagenet_class_index.json', 'r'))
 
 class ILSVRCPredictor:
 
-    def __init__(self, class_index):
+    def __init__(self, class_index=ILSVRC_calss_index):
         self.class_index = class_index
 
     def predict_max(self, out):
