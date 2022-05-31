@@ -29,9 +29,11 @@ std = (0.229, 0.224, 0.225)
 transform = BaseTransform(resize, mean, std)
 img_transformed = transform(img)
 
+print(img_transformed.shape)
+
 predictor = ILSVRCPredictor()
 
-inputs = img_transformed
+inputs = img_transformed.unsqueeze(0)
 
 out = net(inputs)
 result = predictor.predict_max(out)
