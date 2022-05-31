@@ -14,6 +14,9 @@ from PIL import Image
 from torchvision import models, transforms
 from tqdm import tqdm
 
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+print(device)
+
 
 class ImageTransform():
 
@@ -121,6 +124,8 @@ for param in net.parameters():
 
 net.classifier[6] = nn.Linear(net.classifier[6].in_features, 1)
 
+net.to(device)
+
 criterion = nn.BCEWithLogitsLoss()
 optimizer = optim.Adam(net.classifier[6].parameters())
 
@@ -137,6 +142,8 @@ for epoch in range(num_epochs):
 
     if (epoch != 0): # no train at epoch 0 to check the performance with no train.
         for inputs, labels in tqdm(train_dataloader):
+            inputs = inputs.to(device)
+            labels = labels.to(device)
             train_num += inputs.size(0)
             outputs = net(inputs).squeeze()
             loss = criterion(outputs, labels.float())
@@ -156,6 +163,8 @@ for epoch in range(num_epochs):
     eval_num = 0
 
     for inputs, labels in tqdm(val_dataloader):
+        inputs = inputs.to(device)
+        labels = labels.to(device)
         eval_num += inputs.size(0)
         outputs = net(inputs).squeeze()
         loss = criterion(outputs, labels.float())
@@ -170,9 +179,3 @@ for epoch in range(num_epochs):
 
     else:
         print(f"epoch: {epoch + 1} eval loss: {eval_loss/eval_num}  eval acc: {eval_corrects.double()/eval_num}")
-
-
-    
-
-
-
