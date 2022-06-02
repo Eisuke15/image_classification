@@ -131,51 +131,52 @@ optimizer = optim.Adam(net.classifier[6].parameters())
 
 num_epochs = 2
 
-for epoch in range(num_epochs):
-    net.train()
+if __name__ == '__main__':
+    for epoch in range(num_epochs):
+        net.train()
 
-    train_loss = 0.0
-    train_corrects = 0
-    train_num = 0
+        train_loss = 0.0
+        train_corrects = 0
+        train_num = 0
 
-    optimizer.zero_grad()
+        optimizer.zero_grad()
 
-    if (epoch != 0): # no train at epoch 0 to check the performance with no train.
-        for inputs, labels in tqdm(train_dataloader):
+        if (epoch != 0): # no train at epoch 0 to check the performance with no train.
+            for inputs, labels in tqdm(train_dataloader):
+                inputs = inputs.to(device)
+                labels = labels.to(device)
+                train_num += inputs.size(0)
+                outputs = net(inputs).squeeze()
+                loss = criterion(outputs, labels.float())
+
+                preds = torch.where(outputs > 0, 1, 0)
+
+                loss.backward()
+                optimizer.step()
+
+                train_loss += loss.item() * inputs.size(0)
+                train_corrects += torch.sum(preds == labels)
+
+        net.eval()
+
+        eval_loss = 0.0
+        eval_corrects = 0
+        eval_num = 0
+
+        for inputs, labels in tqdm(val_dataloader):
             inputs = inputs.to(device)
             labels = labels.to(device)
-            train_num += inputs.size(0)
+            eval_num += inputs.size(0)
             outputs = net(inputs).squeeze()
             loss = criterion(outputs, labels.float())
 
             preds = torch.where(outputs > 0, 1, 0)
 
-            loss.backward()
-            optimizer.step()
+            eval_loss += loss.item() * inputs.size(0)
+            eval_corrects += torch.sum(preds == labels)
 
-            train_loss += loss.item() * inputs.size(0)
-            train_corrects += torch.sum(preds == labels)
+        if epoch:
+            print(f"epoch: {epoch + 1}  train loss: {train_loss/train_num}  train acc: {train_corrects.double()/train_num}  eval loss: {eval_loss/eval_num}  eval acc: {eval_corrects.double()/eval_num}")
 
-    net.eval()
-
-    eval_loss = 0.0
-    eval_corrects = 0
-    eval_num = 0
-
-    for inputs, labels in tqdm(val_dataloader):
-        inputs = inputs.to(device)
-        labels = labels.to(device)
-        eval_num += inputs.size(0)
-        outputs = net(inputs).squeeze()
-        loss = criterion(outputs, labels.float())
-
-        preds = torch.where(outputs > 0, 1, 0)
-
-        eval_loss += loss.item() * inputs.size(0)
-        eval_corrects += torch.sum(preds == labels)
-
-    if epoch:
-        print(f"epoch: {epoch + 1}  train loss: {train_loss/train_num}  train acc: {train_corrects.double()/train_num}  eval loss: {eval_loss/eval_num}  eval acc: {eval_corrects.double()/eval_num}")
-
-    else:
-        print(f"epoch: {epoch + 1} eval loss: {eval_loss/eval_num}  eval acc: {eval_corrects.double()/eval_num}")
+        else:
+            print(f"epoch: {epoch + 1} eval loss: {eval_loss/eval_num}  eval acc: {eval_corrects.double()/eval_num}")
